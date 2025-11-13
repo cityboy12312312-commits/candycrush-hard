@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Candy Crush: Chế độ KHÓ</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      font-family: 'Comic Sans MS', cursive;
+      user-select: none;
+    }
+    h1 { color: #fff; text-shadow: 2px 2px 4px #000; margin-bottom: 10px; }
+    #game {
+      display: grid;
+      grid-template-columns: repeat(8, 50px);
+      grid-template-rows: repeat(8, 50px);
+      gap: 3px;
+    }
+    .cell {
+      width: 50px;
+      height: 50px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      transition: transform 0.1s ease;
+    }
+    .cell:hover { transform: scale(1.1); }
+    #controls { margin-top: 15px; }
+    button {
+      background: #ff4b5c;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover { background: #ff2e3a; }
+    .shake {
+      animation: shake 0.2s;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translate(0, 0); }
+      25% { transform: translate(5px, 0); }
+      50% { transform: translate(-5px, 0); }
+      75% { transform: translate(5px, 0); }
+    }
+  </style>
+</head>
+<body>
+  <h1>🍬 Candy Crush: Chế độ KHÓ 🍬</h1>
+  <div id="game"></div>
+  <div id="controls">
+    <button onclick="resetGame()">🔁 Restart</button>
+    <button onclick="toggleAnnoy()">😈 Toggle Annoy</button>
+  </div>
+
+  <script>
+    const grid = document.getElementById("game");
+    const colors = ["#ff4757", "#2ed573", "#1e90ff", "#ffa502", "#3742fa", "#ff6b81"];
+    const emojis = ["🍒", "🍏", "🍬", "🍋", "🍇", "🍊"];
+    let cells = [];
+    let selected = null;
+    let annoyMode = true;
+
+    function randomCandy() {
+      return { color: colors[Math.floor(Math.random() * colors.length)], emoji: emojis[Math.floor(Math.random() * emojis.length)] };
+    }
+
+    function createBoard() {
+      grid.innerHTML = "";
+      cells = [];
+      for (let i = 0; i < 64; i++) {
+        const div = document.createElement("div");
+        div.classList.add("cell");
+        const candy = randomCandy();
+        div.style.background = candy.color;
+        div.textContent = candy.emoji;
+        div.dataset.index = i;
+        div.addEventListener("click", () => selectCandy(i));
+        grid.appendChild(div);
+        cells.push(div);
+      }
+    }
+
+    function selectCandy(i) {
+      if (selected === null) {
+        selected = i;
+        cells[i].style.border = "3px solid white";
+      } else {
+        swapCandy(selected, i);
+        cells[selected].style.border = "none";
+        selected = null;
+      }
+    }
+
+    function swapCandy(a, b) {
+      if (Math.abs(a - b) === 1 || Math.abs(a - b) === 8) {
+        const tempColor = cells[a].style.background;
+        const tempEmoji = cells[a].textContent;
+        cells[a].style.background = cells[b].style.background;
+        cells[a].textContent = cells[b].textContent;
+        cells[b].style.background = tempColor;
+        cells[b].textContent = tempEmoji;
+        checkMatches();
+      } else if (annoyMode) {
+        shakeScreen();
+      }
+    }
+
+    function shakeScreen() {
+      document.body.classList.add("shake");
+      setTimeout(() => document.body.classList.remove("shake"), 200);
+    }
+
+    function checkMatches() {
+      let found = false;
+      for (let i = 0; i < 64; i++) {
+        if (i % 8 < 6 && cells[i].textContent === cells[i+1].textContent && cells[i].textContent === cells[i+2].textContent) {
+          cells[i].textContent = cells[i+1].textContent = cells[i+2].textContent = "💣";
+          found = true;
+        }
+        if (i < 48 && cells[i].textContent === cells[i+8].textContent && cells[i].textContent === cells[i+16].textContent) {
+          cells[i].textContent = cells[i+8].textContent = cells[i+1]()
